@@ -1,0 +1,26 @@
+syntax = "proto3";
+package github.com.hobord.infra2.redirect;
+option go_package = "redirect";
+
+service RedirectService {
+  rpc GetRedirection(GetRedirectionMessage) returns (GetRedirectionResponse) {}
+}
+
+message HttpHeader {
+  repeated string header = 1;
+}
+
+message GetRedirectionMessage {
+  string sessionID = 1;
+  string requestID = 2;
+  string url = 3;
+  string httpMethod = 4;
+  map<string, HttpHeader> headers = 5;
+}
+
+message GetRedirectionResponse {
+  string location = 1;
+  int32 httpStatusCode = 2;
+}
+
+
