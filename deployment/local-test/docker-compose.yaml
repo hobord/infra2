@@ -46,9 +46,13 @@ services:
       driver: none
   webserver:
     image: "nginxdemos/hello"
+    ports:
+      - "8081:80"
     logging:
       driver: none
   webserver2:
     image: "nginxdemos/hello"
+    ports:
+      - "8082:80"
     logging:
       driver: none
