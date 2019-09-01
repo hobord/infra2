@@ -26,7 +26,9 @@ func ParamsHandler(next http.Handler) http.Handler {
 
 		reqID := requestId.RequestIDFromContext(r.Context())
 		log.Logger.Println("Hello request ID:" + reqID)
-		next.ServeHTTP(w, r)
+		if next != nil {
+			next.ServeHTTP(w, r)
+		}
 		log.Logger.Println("Params END")
 	})
 }

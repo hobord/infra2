@@ -49,7 +49,9 @@ func SessionHandler(next http.Handler) http.HandlerFunc {
 
 		log.Logger.Println("SessionID:" + sessionID)
 		log.Logger.Println("Session NEXT")
-		next.ServeHTTP(w, r.WithContext(ctx))
+		if next != nil {
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
 		log.Logger.Println("Session NEXT END")
 	}
 }

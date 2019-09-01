@@ -47,7 +47,9 @@ func RedirectHandler(next http.Handler) http.Handler {
 			http.Redirect(w, r, redirection.Location, int(redirection.HttpStatusCode))
 			return
 		}
-		next.ServeHTTP(w, r)
+		if next != nil {
+			next.ServeHTTP(w, r)
+		}
 	})
 }
 

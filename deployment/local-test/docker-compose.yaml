@@ -1,0 +1,36 @@
+version: "3"
+services:
+  session:
+    build:
+      context: ../../
+      dockerfile: build/session/Dockerfile
+    environment:
+      REDIS_HOST: redis
+    ports:
+      - "50051:50051"
+  redirect:
+    build:
+      context: ../../
+      dockerfile: build/redirect/Dockerfile
+    environment:
+      PORT: ":50051"
+    volumes:
+      - ./configs/redirect/:/app/configs
+    ports:
+      - "50052:50051"
+  infra:
+    build:
+      context: ../../
+      dockerfile: build/infra/Dockerfile
+    environment:
+      PORT: "80"
+      SESSION_GRPC_SERVER: "session:50051"
+      REDIRECT_GRPC_SERVER: "redirect:50051"
+    volumes:
+      - ./configs/infra/:/app/configs
+    ports:
+      - "8080:80"
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"

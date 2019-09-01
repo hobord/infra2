@@ -25,6 +25,8 @@ func RequestIDFromContext(ctx context.Context) string {
 func RequestIDHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		ctx := newContextWithRequestID(req.Context(), req)
-		next.ServeHTTP(rw, req.WithContext(ctx))
+		if next != nil {
+			next.ServeHTTP(rw, req.WithContext(ctx))
+		}
 	})
 }

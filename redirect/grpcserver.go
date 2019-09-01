@@ -28,7 +28,7 @@ func CreateGrpcServer() *GrpcServer {
 // GetRedirection is implementing RedirectService rcp function
 func (s *GrpcServer) GetRedirection(ctx context.Context, in *api.GetRedirectionMessage) (*api.GetRedirectionResponse, error) {
 	fmt.Printf("Get redirection: %v", in)
-	sessionValues := &SessionValues{}
+	sessionValues := &SessionValues{} // TODO: get session
 	redirections := make(map[string]int32)
 
 	request := Request{
