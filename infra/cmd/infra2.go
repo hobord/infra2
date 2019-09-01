@@ -7,10 +7,10 @@ import (
 	"os"
 
 	"github.com/hobord/infra2/infra/parampeel"
+	"github.com/hobord/infra2/infra/proxy"
 	"github.com/hobord/infra2/infra/redirect"
 	"github.com/hobord/infra2/infra/requestId"
 	"github.com/hobord/infra2/infra/session"
-	"github.com/hobord/infra2/infra/proxy"
 	log "github.com/hobord/infra2/log"
 )
 
@@ -24,7 +24,7 @@ func main() {
 		httpPort = "80"
 	}
 
-	demoURL, err := url.Parse("http://netlab.hu")
+	demoURL, err := url.Parse(os.Getenv("DEFAULT_WEBSERVER"))
 	if err != nil {
 		log.Logger.Fatal(err)
 	}

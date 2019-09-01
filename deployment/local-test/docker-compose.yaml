@@ -8,6 +8,8 @@ services:
       REDIS_HOST: redis
     ports:
       - "50051:50051"
+    logging:
+      driver: none
   redirect:
     build:
       context: ../../
@@ -18,19 +20,35 @@ services:
       - ./configs/redirect/:/app/configs
     ports:
       - "50052:50051"
+    logging:
+      driver: none
   infra:
     build:
       context: ../../
       dockerfile: build/infra/Dockerfile
     environment:
       PORT: "80"
+      LOG: "false"
       SESSION_GRPC_SERVER: "session:50051"
       REDIRECT_GRPC_SERVER: "redirect:50051"
+      DEFAULT_WEBSERVER: http://webserver/
     volumes:
       - ./configs/infra/:/app/configs
     ports:
       - "8080:80"
+    logging:
+      driver: none
   redis:
     image: "redis:alpine"
     ports:
       - "6379:6379"
+    logging:
+      driver: none
+  webserver:
+    image: "nginxdemos/hello"
+    logging:
+      driver: none
+  webserver2:
+    image: "nginxdemos/hello"
+    logging:
+      driver: none
