@@ -9,10 +9,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	api "github.com/hobord/infra2/api/grpc/session"
 	sessiongrpc "github.com/hobord/infra2/session/grpc"
 	redistore "github.com/hobord/infra2/session/redistore"
-	api "github.com/hobord/infra2/api/grpc/session"
-	 
 )
 
 func main() {
@@ -29,9 +28,12 @@ func main() {
 	s := grpc.NewServer()
 	reflection.Register(s)
 
+	// If You want to inject the redis connection pool by hand
 	// redisConnectionPool = redistore.NewRedisPool()
+	// store := redistore.CreateRedisStore(redisConnectionPool)
+	// otherwise  the constructor create automatically using the OS ENV
 	store := redistore.CreateRedisStore(nil)
-	
+
 	rpcServer, err := sessiongrpc.CreateGrpcServer(store)
 	if err != nil {
 		log.Fatalf("failed create a grpc server: %v", err)

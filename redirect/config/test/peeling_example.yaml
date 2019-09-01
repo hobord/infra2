@@ -1,0 +1,11 @@
+apiVersion: RedirectionService/v1
+kind: ParamPeelingConfig
+metadata:
+  name: "example_config"
+spec:
+    hosts: ["888casino.com", "888poker.com"]
+    protocols: ["http", "https"]
+    params: [
+        "ftd",
+        "lang"
+    ]
