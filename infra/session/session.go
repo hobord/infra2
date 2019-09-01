@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	sessionApi "github.com/hobord/infra2/api/grp/session"
+	sessionApi "github.com/hobord/infra2/api/grpc/session"
 	log "github.com/hobord/infra2/log"
 
 	st "github.com/golang/protobuf/ptypes/struct"
@@ -167,7 +167,7 @@ func getSessionRequestPostKey(r *http.Request) string {
 
 func GetSession(sessionID string) (*sessionApi.SessionResponse, error) {
 	var client sessionApi.SessionServiceClient
-	client = sessionApi.NewDSessionServiceClient(sessionConn)
+	client = sessionApi.NewSessionServiceClient(sessionConn)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -181,7 +181,7 @@ func GetSession(sessionID string) (*sessionApi.SessionResponse, error) {
 
 func AddValuesToSession(sessionID string, values Values) (*sessionApi.SessionResponse, error) {
 	var client sessionApi.SessionServiceClient
-	client = sessionApi.NewDSessionServiceClient(sessionConn)
+	client = sessionApi.NewSessionServiceClient(sessionConn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -196,7 +196,7 @@ func AddValuesToSession(sessionID string, values Values) (*sessionApi.SessionRes
 
 func AddValueToSession(sessionID string, value *st.Value) (*sessionApi.SessionResponse, error) {
 	var client sessionApi.SessionServiceClient
-	client = sessionApi.NewDSessionServiceClient(sessionConn)
+	client = sessionApi.NewSessionServiceClient(sessionConn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -211,7 +211,7 @@ func AddValueToSession(sessionID string, value *st.Value) (*sessionApi.SessionRe
 
 func InvalidateSession(sessionID string) (*sessionApi.SuccessMessage, error) {
 	var client sessionApi.SessionServiceClient
-	client = sessionApi.NewDSessionServiceClient(sessionConn)
+	client = sessionApi.NewSessionServiceClient(sessionConn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

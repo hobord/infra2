@@ -10,8 +10,8 @@ import (
 	"github.com/hobord/infra2/infra/redirect"
 	"github.com/hobord/infra2/infra/requestId"
 	"github.com/hobord/infra2/infra/session"
+	"github.com/hobord/infra2/infra/proxy"
 	log "github.com/hobord/infra2/log"
-	proxy "github.com/hobord/infra2/proxy"
 )
 
 func init() {
@@ -29,7 +29,7 @@ func main() {
 		log.Logger.Fatal(err)
 	}
 	// proxyHandler := httputil.NewSingleHostReverseProxy(demoURL)
-	proxyHandler := proxy.NewProxyHandler(demoURL)
+	proxyHandler := proxy.NewProxyHandler(demoURL, nil)
 
 	redirectHandler := redirect.RedirectHandler(proxyHandler)
 	paramsHandler := parampeel.ParamsHandler(redirectHandler)

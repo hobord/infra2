@@ -10,7 +10,6 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/uuid v1.1.1
-	github.com/hobord/infra v0.0.0-20190829102330-cb4041da876a
 	github.com/spf13/viper v1.4.0
 	golang.org/x/net v0.0.0-20190522155817-f3200d17e092
 	google.golang.org/grpc v1.23.0

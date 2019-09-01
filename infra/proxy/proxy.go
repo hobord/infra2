@@ -20,9 +20,7 @@ func init() {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 }
 
-//, next http.Handler
-
-func NewProxyHandler(demoURL *url.URL) http.Handler {
+func NewProxyHandler(demoURL *url.URL, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		// make request
 		req.Host = demoURL.Host
@@ -85,5 +83,9 @@ func NewProxyHandler(demoURL *url.URL) http.Handler {
 		}
 
 		close(done)
+
+		if next != nil {
+			next.ServeHTTP(rw, req)
+		}
 	})
 }
