@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"crypto/tls"
@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -15,31 +14,16 @@ import (
 	"golang.org/x/net/http2"
 )
 
+var demoURL *url.URL
+
 func init() {
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 }
 
-func main() {
-	demoURL, err := url.Parse("http://netlab.hu")
-	if err != nil {
-		log.Logger.Fatal(err)
-	}
-	httpPort := os.Getenv("PORT")
-	if httpPort == "" {
-		httpPort = "8100"
-	}
+//, next http.Handler
 
-	// rh := ctxrouter.RouterHandler()
-	// rdh := redirect.RedirectHandler(rh)
-	// pmh := httparams.ParamsHandler(rdh)
-	// sh := session.SessionHandler(pmh)
-	// ridh := requestId.RequestIDHandler(sh)
-	// httplogger := log.HttpLoggerHandler(ridh)
-	// log.Logger.Fatal(http.ListenAndServe(":"+httpPort, httplogger))
-	// proxy := httputil.NewSingleHostReverseProxy(demoURL)
-
-	proxy := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-
+func NewProxyHandler(demoURL *url.URL) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		// make request
 		req.Host = demoURL.Host
 		req.URL.Host = demoURL.Host
@@ -102,9 +86,4 @@ func main() {
 
 		close(done)
 	})
-
-	log.Logger.Fatal(http.ListenAndServe(":"+httpPort, proxy))
-
-	// https
-	// log.Logger.Fatal(http.ListenAndServeTLS(":"+httpPort, "cert.pem", "key.pem" , proxy))
 }
