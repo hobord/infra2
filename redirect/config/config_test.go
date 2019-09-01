@@ -8,14 +8,14 @@ import (
 )
 
 func TestLoadConfigs(t *testing.T) {
-	cfgState := &RedirectionConfigState{}
-	cfgState.loadConfigs("test")
+	cfgState := &State{}
+	cfgState.LoadConfigs("test")
 	t.Logf("Loaded: %v", cfgState)
 }
 
 func TestParampeelingConfigLoader(t *testing.T) {
 	file := "test/peeling_example.yaml"
-	cfgState := &RedirectionConfigState{}
+	cfgState := &State{}
 	v := viper.New()
 	v.SetConfigFile(file)
 	if err := v.ReadInConfig(); err != nil {
@@ -27,7 +27,7 @@ func TestParampeelingConfigLoader(t *testing.T) {
 
 func TestRedirectionsConfigLoader(t *testing.T) {
 	file := "test/redirections_example.yml"
-	cfgState := &RedirectionConfigState{}
+	cfgState := &State{}
 	v := viper.New()
 	v.SetConfigFile(file)
 	if err := v.ReadInConfig(); err != nil {

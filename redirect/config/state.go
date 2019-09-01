@@ -2,27 +2,27 @@ package config
 
 import "regexp"
 
-//RedirectionConfigState config state
-type RedirectionConfigState struct {
-	RedirectionHosts map[string]redirectionRulesByProtcols // haskey by hostname: www.site.com
-	ParamPeeling     map[string]paramPeelingByProtocols
+//State config state
+type State struct {
+	RedirectionHosts map[string]RedirectionRulesByProtcols // haskey by hostname: www.site.com
+	ParamPeeling     map[string]ParamPeelingByProtocols
 }
 
-type redirectionRulesByProtcols map[string][]RedirectionRule // haskeys http / https
+type RedirectionRulesByProtcols map[string][]RedirectionRule // haskeys http / https
 
 // RedirectionRule redirection rule in state
 type RedirectionRule struct {
 	Type           string
 	LogicName      string
 	Regexp         *regexp.Regexp
-	TargetsByURL   map[string]redirectionTarget
+	TargetsByURL   map[string]RedirectionTarget
 	Target         string
 	HTTPStatusCode int32
 }
 
-type redirectionTarget struct {
+type RedirectionTarget struct {
 	Target         string
 	HTTPStatusCode int32
 }
 
-type paramPeelingByProtocols map[string][]string // haskeys http / https
+type ParamPeelingByProtocols map[string][]string // haskeys http / https

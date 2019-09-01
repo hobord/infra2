@@ -1,0 +1,16 @@
+version: '3'
+services:
+  code:
+    image: hobord/code-server:golang
+    privileged: true
+    command: ["-N", "-H", "--disable-telemetry", "/home/coder/infra2"]
+    ports: 
+    - "8443:8443"
+    volumes:
+      - ../../:/home/coder/infra2
+    environment:
+      FLASK_ENV: development
+  redis:
+    image: "redis:alpine"
+    ports: 
+    - "6379:6379"

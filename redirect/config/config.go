@@ -13,7 +13,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-func (configState *RedirectionConfigState) loadConfigs(root string) {
+// LogadConfig is loading configuration from specific directory or OS ENV CONFIG_DIR
+func (configState *State) LoadConfigs(root string) {
 	// runtime_viper.AddRemoteProvider("etcd", "http://127.0.0.1:4001","/config/hugo.yml")
 	// runtime_viper.AddSecureRemoteProvider("etcd","http://127.0.0.1:4001","/config/hugo.yaml","/etc/secrets/mykeyring.gpg")
 
@@ -67,7 +68,7 @@ func (configState *RedirectionConfigState) loadConfigs(root string) {
 
 }
 
-func (configState *RedirectionConfigState) parampeelingConfigLoader(v *viper.Viper) {
+func (configState *State) parampeelingConfigLoader(v *viper.Viper) {
 	cfg := &paramPeelingConfigYaml{}
 	err := v.Unmarshal(&cfg)
 	if err != nil {
@@ -86,7 +87,7 @@ func (configState *RedirectionConfigState) parampeelingConfigLoader(v *viper.Vip
 
 		for _, protocol := range protocols {
 			if configState.ParamPeeling == nil {
-				configState.ParamPeeling = make(map[string]paramPeelingByProtocols)
+				configState.ParamPeeling = make(map[string]ParamPeelingByProtocols)
 			}
 			for _, param := range cfg.Spec.Params {
 				if configState.ParamPeeling[host] == nil {
@@ -98,7 +99,7 @@ func (configState *RedirectionConfigState) parampeelingConfigLoader(v *viper.Vip
 	}
 }
 
-func (configState *RedirectionConfigState) redirectionsConfigLoader(v *viper.Viper) {
+func (configState *State) redirectionsConfigLoader(v *viper.Viper) {
 	cfg := &redirectionsConfigYaml{}
 	err := v.Unmarshal(&cfg)
 	if err != nil {
@@ -110,7 +111,7 @@ func (configState *RedirectionConfigState) redirectionsConfigLoader(v *viper.Vip
 
 	for _, host := range cfg.Spec.Hosts {
 		if configState.RedirectionHosts == nil {
-			configState.RedirectionHosts = make(map[string]redirectionRulesByProtcols)
+			configState.RedirectionHosts = make(map[string]RedirectionRulesByProtcols)
 		}
 		var protocols []string
 		if len(cfg.Spec.Protocols) > 0 {
@@ -141,9 +142,9 @@ func (configState *RedirectionConfigState) redirectionsConfigLoader(v *viper.Vip
 				}
 
 				if len(rule.TargetsByURL) > 0 {
-					hash := make(map[string]redirectionTarget)
+					hash := make(map[string]RedirectionTarget)
 					for _, t := range rule.TargetsByURL {
-						hash[t.Src] = redirectionTarget{
+						hash[t.Src] = RedirectionTarget{
 							Target:         t.Target,
 							HTTPStatusCode: t.HTTPStatusCode,
 						}
@@ -167,8 +168,8 @@ func (configState *RedirectionConfigState) redirectionsConfigLoader(v *viper.Vip
 
 }
 
-func csvLoader(filename string) (map[string]redirectionTarget, error) {
-	hash := make(map[string]redirectionTarget)
+func csvLoader(filename string) (map[string]RedirectionTarget, error) {
+	hash := make(map[string]RedirectionTarget)
 	//TODO: Open CSV file from url
 	f, err := os.Open(filename)
 	if err != nil {
@@ -185,11 +186,11 @@ func csvLoader(filename string) (map[string]redirectionTarget, error) {
 
 		i, err := strconv.ParseInt(line[2], 10, 32)
 		if err != nil {
-			hash[line[0]] = redirectionTarget{
+			hash[line[0]] = RedirectionTarget{
 				Target: line[1],
 			}
 		} else {
-			hash[line[0]] = redirectionTarget{
+			hash[line[0]] = RedirectionTarget{
 				Target:         line[1],
 				HTTPStatusCode: int32(i), // TODO check
 			}

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 )
 
 var Logger *logrus.Entry
