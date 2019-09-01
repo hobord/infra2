@@ -26,19 +26,28 @@ func NewRedisPool(server string, dbno int, password string, maxIdle int, idleTim
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", server)
 			if err != nil {
+				log.Logger.Errorf("can't connect to redis, err: %v", err)
 				return nil, err
 			}
 			if password != "" {
 				if _, err := c.Do("AUTH", password); err != nil {
 					c.Close()
+					log.Logger.Errorf("can't auth to redis, err: %v", err)
 					return nil, err
 				}
 			}
-			c.Do("SELECT", dbno)
+			if _, err := c.Do("SELECT", dbno); err != nil {
+				c.Close()
+				log.Logger.Errorf("can't select db (%v), in redis, err: %v", dbno, err)
+				return nil, err
+			}
 			return c, err
 		},
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
 			_, err := c.Do("PING")
+			if err != nil {
+				log.Logger.Errorf("can't ping to redis, err: %v", err)
+			}
 			return err
 		},
 	}
@@ -123,7 +132,7 @@ func (s *RedisStore) CreateSession(ttl int64) (string, error) {
 	return uuid.String(), nil
 }
 
-// AddValueToSession is add a value with key to session
+// AddValueToSession is add a value with key to session store
 func (s *RedisStore) AddValueToSession(id, key, value string) error {
 	conn := s.ConnectionPool.Get()
 	defer conn.Close() // TODO: ???
@@ -143,6 +152,7 @@ func addValueToSession(conn redis.Conn, id, key, value string) error {
 	return conn.Send("HSET", id, key, value)
 }
 
+// AddValuesToSession is add multiple values into the session store
 func (s *RedisStore) AddValuesToSession(id string, values session.SessionValues) error {
 	conn := s.ConnectionPool.Get()
 	defer conn.Close() // TODO: ???

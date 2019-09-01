@@ -3,11 +3,12 @@ package config
 import (
 	"encoding/csv"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
+
+	log "github.com/hobord/infra2/log"
 
 	"github.com/spf13/viper"
 )
@@ -46,7 +47,7 @@ func (configState *RedirectionConfigState) loadConfigs(root string) {
 		v := viper.New()
 		v.SetConfigFile(file)
 		if err := v.ReadInConfig(); err != nil {
-			log.Fatalf("Error reading config file, %s", err)
+			log.Logger.Fatalf("Error reading config file, %s", err)
 		}
 
 		// var cfg interface{}
@@ -72,6 +73,7 @@ func (configState *RedirectionConfigState) parampeelingConfigLoader(v *viper.Vip
 	if err != nil {
 		// log.Fatalf("unable to decode into struct, %v", err)
 		// TODO: error handling
+		log.Logger.Errorf("unable to decode into struct, %v", err)
 		return
 	}
 	for _, host := range cfg.Spec.Hosts {
@@ -102,6 +104,7 @@ func (configState *RedirectionConfigState) redirectionsConfigLoader(v *viper.Vip
 	if err != nil {
 		// log.Fatalf("unable to decode into struct, %v", err)
 		// TODO: error handling
+		log.Logger.Errorf("unable to decode into struct, %v", err)
 		return
 	}
 
@@ -131,6 +134,7 @@ func (configState *RedirectionConfigState) redirectionsConfigLoader(v *viper.Vip
 				if rule.RegexExpression != "" {
 					newRule.Regexp, err = regexp.Compile(rule.RegexExpression)
 					if err != nil {
+						log.Logger.Errorf("cant compile the regexp expression, %v", err)
 						continue // TODO: errorlog
 					}
 					newRule.Target = rule.Target
@@ -150,6 +154,7 @@ func (configState *RedirectionConfigState) redirectionsConfigLoader(v *viper.Vip
 					//load csv
 					hash, err := csvLoader(rule.FileURL)
 					if err != nil {
+						log.Logger.Errorf("unable load the csv file, %v, %v", rule.FileURL, err)
 						continue // TODO: errorlog
 					}
 					newRule.TargetsByURL = hash

@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
+
+	log "github.com/hobord/infra2/log"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -21,7 +22,7 @@ func main() {
 	}
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Logger.Fatalf("failed to listen: %v", err)
 	}
 	fmt.Println("Server listen: ", port)
 
@@ -36,12 +37,12 @@ func main() {
 
 	rpcServer, err := sessiongrpc.CreateGrpcServer(store)
 	if err != nil {
-		log.Fatalf("failed create a grpc server: %v", err)
+		log.Logger.Fatalf("failed create a grpc server: %v", err)
 	}
 
 	api.RegisterSessionServiceServer(s, rpcServer)
 
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Logger.Fatalf("failed to serve: %v", err)
 	}
 }

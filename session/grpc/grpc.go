@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	log "github.com/hobord/infra2/log"
+
 	"github.com/golang/protobuf/proto"
 	st "github.com/golang/protobuf/ptypes/struct"
 	pb "github.com/hobord/infra2/api/grpc/session"
@@ -21,6 +23,7 @@ func (s *GrpcServer) getStore() session.SessionStore {
 // CreateGrpcServer is a constructor for Session GrpcServer
 func CreateGrpcServer(SessionStore session.SessionStore) (*GrpcServer, error) {
 	if SessionStore == nil {
+		log.Logger.Error("there is no session store")
 		return nil, errors.New("We need some session store")
 	}
 	return &GrpcServer{
@@ -32,6 +35,7 @@ func CreateGrpcServer(SessionStore session.SessionStore) (*GrpcServer, error) {
 func (s *GrpcServer) CreateSession(ctx context.Context, in *pb.CreateSessionMessage) (*pb.SessionResponse, error) {
 	id, err := s.store.CreateSession(in.Ttl)
 	if err != nil {
+		log.Logger.Errorf("can't create a session, err: %v", err)
 		return &pb.SessionResponse{}, err
 	}
 
@@ -43,11 +47,13 @@ func (s *GrpcServer) AddValueToSession(ctx context.Context, in *pb.AddValueToSes
 	data := proto.MarshalTextString(in.Value)
 	err := s.store.AddValueToSession(in.Id, in.Key, data)
 	if err != nil {
+		log.Logger.Errorf("can't add value into session: sessionId: %v, key: %v, err: %v", in.Id, in.Key, err)
 		return &pb.SessionResponse{}, err
 	}
 
 	response, err := s.getSessionValues(in.Id)
 	if err != nil {
+		log.Logger.Errorf("can't get values from session: sessionId: %v, err: %v", in.Id, err)
 		return nil, err
 	}
 
@@ -63,11 +69,13 @@ func (s *GrpcServer) AddValuesToSession(ctx context.Context, in *pb.AddValuesToS
 	}
 	err := s.store.AddValuesToSession(in.Id, values)
 	if err != nil {
+		log.Logger.Errorf("can't add values into session: sessionId: %v, values: %v, err: %v", in.Id, values, err)
 		return nil, err
 	}
 
 	response, err := s.getSessionValues(in.Id)
 	if err != nil {
+		log.Logger.Errorf("can't get values from session: sessionId: %v, err: %v", in.Id, err)
 		return nil, err
 	}
 
@@ -97,6 +105,7 @@ func (s *GrpcServer) getSessionValues(id string) (*pb.SessionResponse, error) {
 func (s *GrpcServer) GetSession(ctx context.Context, in *pb.GetSessionMessage) (*pb.SessionResponse, error) {
 	response, err := s.getSessionValues(in.Id)
 	if err != nil {
+		log.Logger.Errorf("can't get values from session: sessionId: %v, err: %v", in.Id, err)
 		return nil, err
 	}
 
@@ -107,6 +116,7 @@ func (s *GrpcServer) GetSession(ctx context.Context, in *pb.GetSessionMessage) (
 func (s *GrpcServer) InvalidateSession(ctx context.Context, in *pb.InvalidateSessionMessage) (*pb.SuccessMessage, error) {
 	err := s.store.InvalidateSession(in.Id)
 	if err != nil {
+		log.Logger.Errorf("can't invalidate session: sessionId: %v, err: %v", in.Id, err)
 		return &pb.SuccessMessage{Successfull: false}, err
 	}
 
@@ -117,6 +127,7 @@ func (s *GrpcServer) InvalidateSession(ctx context.Context, in *pb.InvalidateSes
 func (s *GrpcServer) InvalidateSessionValue(ctx context.Context, in *pb.InvalidateSessionValueMessage) (*pb.SuccessMessage, error) {
 	err := s.store.InvalidateSessionValue(in.Id, in.Key)
 	if err != nil {
+		log.Logger.Errorf("can't invalidate session value: sessionId: %v, key: %v, err: %v", in.Id, in.Key, err)
 		return &pb.SuccessMessage{Successfull: false}, err
 	}
 
