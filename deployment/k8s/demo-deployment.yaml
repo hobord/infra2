@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infra2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: infra2
+  template:
+    metadata:
+      labels:
+        app: infra2
+    spec:
+      containers:
+        - image: redis:5-alpine
+          name: redis
+          resources: {}
+          ports:
+            - containerPort: 6379
+              name: redis
+              protocol: TCP
+        - image: hobord/infra2:session
+          name: session
+          resources: {}
+          env:
+            - name: PORT
+              value: "50051"
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - containerPort: 50051
+              name: session
+              protocol: TCP
+        - image: hobord/infra2:redirect
+          name: redirect
+          resources: {}
+          env:
+            - name: PORT
+              value: "50052"
+          volumeMounts:
+            - name: redirect-config
+              mountPath: /app/configs
+          ports:
+            - containerPort: 50052
+              name: redirect
+              protocol: TCP
+        - image: hobord/infra2:infra
+          name: infra
+          resources: {}
+          env:
+            - name: PORT
+              value: "80"
+            - name: SESSION_GRPC_SERVER
+              value: "session:50051"
+            - name: REDIRECT_GRPC_SERVER
+              value: "redirect:50052"
+          # volumeMounts:
+          #   - name: infra-config
+          #     mountPath: /app/configs
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+            - containerPort: 443
+              name: https
+              protocol: TCP
+      volumes:
+        # - name: infra-config
+        #   configMap:
+        #     name: infra-config
+        - name: redirect-config
+          configMap:
+            name: redirect-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: infra2
+spec:
+  selector:
+    app: infra2
+  ports:
+    - name: session
+      protocol: TCP
+      port: 50051
+    - name: redirect
+      protocol: TCP
+      port: 50052
+    - name: http
+      protocol: TCP
+      port: 80
+    - name: https
+      protocol: TCP
+      port: 443
+    - name: redis
+      protocol: TCP
+      port: 6379
+  type: NodePort
