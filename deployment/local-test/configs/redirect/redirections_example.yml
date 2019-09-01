@@ -17,7 +17,7 @@ spec:
           target: https://newblog.888sport.com/
           httpStatusCode: 302
         - src: http://localhost:8080/test
-          target: https://www.888casino.com/blog/
+          target: http://webserver2/
           httpStatusCode: 302
     - type: "Regexp"
       regexExpression: "http(s?):\\/\\/localhost:8080\\/blog(.*)"
