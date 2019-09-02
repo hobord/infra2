@@ -6,7 +6,7 @@ services:
     command: ["-N", "-H", "--disable-telemetry", "/home/coder/infra2"]
     ports: 
     - "8443:8443"
-    - "80:8080"
+    # - "80:8080"
     volumes:
       - ../../:/home/coder/infra2
     environment:

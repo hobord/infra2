@@ -63,7 +63,7 @@ func (s *GrpcServer) AddValueToSession(ctx context.Context, in *pb.AddValueToSes
 // AddValuesToSession is add multiple values into the session
 func (s *GrpcServer) AddValuesToSession(ctx context.Context, in *pb.AddValuesToSessionMessage) (*pb.SessionResponse, error) {
 	var values map[string]string
-
+	values = make(map[string]string)
 	for key, val := range in.Values {
 		values[key] = proto.MarshalTextString(val)
 	}

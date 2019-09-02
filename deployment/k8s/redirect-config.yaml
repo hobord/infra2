@@ -9,7 +9,7 @@ data:
     metadata:
       name: "example_config"
     spec:
-        hosts: ["888casino.com", "888poker.com", "localhost:8080"]
+        hosts: ["888casino.com", "888poker.com", "10.20.35.111:30004"]
         protocols: ["http", "https"]
         params: [
             "ftd",
@@ -21,7 +21,7 @@ data:
     metadata:
       name: "RedirectionsConfigExample"
     spec:
-      hosts: ["888casino.com", "888poker.com", "localhost:8080"]
+      hosts: ["888casino.com", "888poker.com", "10.20.35.111:30004"]
       protocols: ["http", "https"]
       rules:
         - type: "Hash"
@@ -34,11 +34,11 @@ data:
             - src: https://888sport.com/blog
               target: https://newblog.888sport.com/
               httpStatusCode: 302
-            - src: http://localhost:8080/test
+            - src: http://10.20.35.111:30004/test
               target: https://www.888casino.com/blog/
               httpStatusCode: 302
         - type: "Regexp"
-          regexExpression: "http(s?):\\/\\/localhost:8080\\/blog(.*)"
+          regexExpression: "http(s?):\\/\\/10.20.35.111:30004\\/blog(.*)"
           target: https://newblog.888sport.com/
           httpStatusCode: 302
         # - type: "CustomLogic"

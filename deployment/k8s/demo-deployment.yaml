@@ -25,13 +25,13 @@ spec:
           resources: {}
           env:
             - name: PORT
-              value: "50051"
+              value: ":50061"
             - name: REDIS_HOST
-              value: redis
+              value: localhost
             - name: REDIS_PORT
               value: "6379"
           ports:
-            - containerPort: 50051
+            - containerPort: 50061
               name: session
               protocol: TCP
         - image: hobord/infra2:redirect
@@ -39,12 +39,12 @@ spec:
           resources: {}
           env:
             - name: PORT
-              value: "50052"
+              value: ":50062"
           volumeMounts:
             - name: redirect-config
               mountPath: /app/configs
           ports:
-            - containerPort: 50052
+            - containerPort: 50062
               name: redirect
               protocol: TCP
         - image: hobord/infra2:infra
@@ -52,22 +52,62 @@ spec:
           resources: {}
           env:
             - name: PORT
-              value: "80"
+              value: "81"
             - name: SESSION_GRPC_SERVER
-              value: "session:50051"
+              value: "localhost:50061"
             - name: REDIRECT_GRPC_SERVER
-              value: "redirect:50052"
+              value: "localhost:50062"
+            - name: DEFAULT_WEBSERVER
+              value: "http://localhost/"
           # volumeMounts:
           #   - name: infra-config
           #     mountPath: /app/configs
           ports:
-            - containerPort: 80
+            - containerPort: 81
               name: http
               protocol: TCP
-            - containerPort: 443
-              name: https
+            # - containerPort: 443
+            #   name: https
+            #   protocol: TCP
+        - image: nginxdemos/hello
+          name: webserver
+          resources: {}
+          env:
+          - name: PORT
+            value: "80"
+          ports:
+            - containerPort: 80
+              name: webserver
+              protocol: TCP
+        - image: peterevans/vegeta
+          name: vegeta
+          resources: {}
+          command: [ "/bin/sh", "-c", "--" ]
+          args: [ "while true; do sleep 30; done;" ]
+          volumeMounts:
+            - name: vegeta-report
+              mountPath: /reports/
+        - image: hobord/go_static_httpfs
+          name: static-fs
+          resources: {}
+          env:
+            - name: DIRECTORY
+              value: /app/public/
+            - name: LOG
+              value: "true"
+            - name: DIRINDEX
+              value: "true"
+          volumeMounts:
+            - name: vegeta-report
+              mountPath: /app/public
+              readOnly: true
+          ports:
+            - containerPort: 8100
+              name: reports
               protocol: TCP
       volumes:
+        - name: vegeta-report
+          emptyDir: {}
         # - name: infra-config
         #   configMap:
         #     name: infra-config
@@ -86,16 +126,19 @@ spec:
   ports:
     - name: session
       protocol: TCP
-      port: 50051
+      port: 50061
     - name: redirect
       protocol: TCP
-      port: 50052
+      port: 50062
     - name: http
       protocol: TCP
-      port: 80
-    - name: https
+      port: 81
+    - name: webserver
       protocol: TCP
-      port: 443
+      port: 80
+    - name: reports
+      protocol: TCP
+      port: 8100
     - name: redis
       protocol: TCP
       port: 6379

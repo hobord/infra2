@@ -6,22 +6,26 @@ services:
       dockerfile: build/session/Dockerfile
     environment:
       REDIS_HOST: redis
+      HTTP_PROXY: ""
+      NO_PROXY: "localhost,127.0.0.1,session,redirect"
     ports:
-      - "50051:50051"
-    logging:
-      driver: none
+      - "60051:50051"
+    # logging:
+    #   driver: none
   redirect:
     build:
       context: ../../
       dockerfile: build/redirect/Dockerfile
     environment:
       PORT: ":50051"
+      HTTP_PROXY: ""
+      NO_PROXY: "localhost,127.0.0.1,session,redirect"
     volumes:
       - ./configs/redirect/:/app/configs
     ports:
-      - "50052:50051"
-    logging:
-      driver: none
+      - "60052:50051"
+    # logging:
+    #   driver: none
   infra:
     build:
       context: ../../
@@ -32,27 +36,32 @@ services:
       SESSION_GRPC_SERVER: "session:50051"
       REDIRECT_GRPC_SERVER: "redirect:50051"
       DEFAULT_WEBSERVER: http://webserver/
+      HTTP_PROXY: ""
+      NO_PROXY: "localhost,127.0.0.1,session,redirect,webserver,webserver2"
     volumes:
       - ./configs/infra/:/app/configs
+    depends_on:
+      - "session"
+      - "redirect"
     ports:
       - "8080:80"
-    logging:
-      driver: none
+    # logging:
+    #   driver: none
   redis:
     image: "redis:alpine"
     ports:
-      - "6379:6379"
-    logging:
-      driver: none
+      - "63790:6379"
+    # logging:
+    #   driver: none
   webserver:
     image: "nginxdemos/hello"
     ports:
-      - "8081:80"
-    logging:
-      driver: none
+      - "8082:80"
+    # logging:
+    #   driver: none
   webserver2:
     image: "nginxdemos/hello"
     ports:
-      - "8082:80"
-    logging:
-      driver: none
+      - "8083:80"
+    # logging:
+    #   driver: none
