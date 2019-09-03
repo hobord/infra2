@@ -7,7 +7,7 @@ WORKDIR /go/app
 COPY . .
 
 RUN go get -d -v ./...
-RUN go build -o build/redirect/redirectServer redirect/cmd/redirect.go
+RUN go build -o build/redirect/redirectServer cmd/redirect.go
 
 # final stage
 FROM alpine

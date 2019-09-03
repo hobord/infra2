@@ -13,15 +13,16 @@ spec:
         app: infra2
     spec:
       containers:
-        - image: redis:5-alpine
-          name: redis
+        - name: redis
+          image: redis:5-alpine
           resources: {}
           ports:
             - containerPort: 6379
               name: redis
               protocol: TCP
-        - image: hobord/infra2:session
-          name: session
+        - name: session
+          image: hobord/infra2:session
+          imagePullPolicy: Always
           resources: {}
           env:
             - name: PORT
@@ -34,8 +35,9 @@ spec:
             - containerPort: 50061
               name: session
               protocol: TCP
-        - image: hobord/infra2:redirect
-          name: redirect
+        - name: redirect
+          image: hobord/infra2:redirect
+          imagePullPolicy: Always
           resources: {}
           env:
             - name: PORT
@@ -47,8 +49,9 @@ spec:
             - containerPort: 50062
               name: redirect
               protocol: TCP
-        - image: hobord/infra2:infra
-          name: infra
+        - name: infra
+          image: hobord/infra2:infra
+          imagePullPolicy: Always
           resources: {}
           env:
             - name: PORT
@@ -69,8 +72,8 @@ spec:
             # - containerPort: 443
             #   name: https
             #   protocol: TCP
-        - image: nginxdemos/hello
-          name: webserver
+        - name: webserver
+          image: nginxdemos/hello
           resources: {}
           env:
           - name: PORT
@@ -79,16 +82,16 @@ spec:
             - containerPort: 80
               name: webserver
               protocol: TCP
-        - image: peterevans/vegeta
-          name: vegeta
+        - name: vegeta
+          image: peterevans/vegeta
           resources: {}
           command: [ "/bin/sh", "-c", "--" ]
           args: [ "while true; do sleep 30; done;" ]
           volumeMounts:
             - name: vegeta-report
               mountPath: /reports/
-        - image: hobord/go_static_httpfs
-          name: static-fs
+        - name: static-fs
+          image: hobord/go_static_httpfs
           resources: {}
           env:
             - name: DIRECTORY
