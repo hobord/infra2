@@ -33,7 +33,7 @@ func main() {
 	// redisConnectionPool = redistore.NewRedisPool()
 	// store := redistore.CreateRedisStore(redisConnectionPool)
 	// otherwise  the constructor create automatically using the OS ENV
-	store := redistore.CreateRedisStore(nil)
+	store := redistore.CreateRedisSessionStore(nil)
 
 	rpcServer, err := sessiongrpc.CreateGrpcServer(store)
 	if err != nil {

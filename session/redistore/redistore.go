@@ -15,7 +15,7 @@ import (
 
 // RedisStore is a redsi implementation of session store
 type RedisStore struct {
-	ConnectionPool *redis.Pool
+	connectionPool *redis.Pool
 }
 
 // NewRedisPool create a new redis connection pool
@@ -54,7 +54,7 @@ func NewRedisPool(server string, dbno int, password string, maxIdle int, idleTim
 }
 
 // CreateRedisStore is the constructor of the redis session store
-func CreateRedisStore(connectionPool *redis.Pool) *RedisStore {
+func CreateRedisSessionStore(connectionPool *redis.Pool) *RedisStore {
 	if connectionPool == nil {
 		var err error
 		rdHost := os.Getenv("REDIS_HOST")
@@ -101,25 +101,25 @@ func CreateRedisStore(connectionPool *redis.Pool) *RedisStore {
 		connectionPool = NewRedisPool(rediserver, rdDb, password, maxIdle, maxTimeOut)
 	}
 	return &RedisStore{
-		ConnectionPool: connectionPool,
+		connectionPool: connectionPool,
 	}
 }
 
 // CreateSession is create a new session with ttl, if ttl is 0 then the session is eternal
 func (s *RedisStore) CreateSession(ttl int64) (string, error) {
 	var err error
-	conn := s.ConnectionPool.Get()
+	conn := s.connectionPool.Get()
 	defer conn.Close() // TODO: ???
 	uuid := uuid.New()
 	if ttl > 0 {
 		ttlstr := fmt.Sprintf("%d", ttl)
-		err = addValueToSession(conn, uuid.String(), "__TTL", ttlstr)
+		err = s.addValueToSession(conn, uuid.String(), "__TTL", ttlstr)
 		if err != nil {
 			return "", err
 		}
 		conn.Send("EXPIRE", uuid.String(), ttlstr)
 	} else {
-		err = addValueToSession(conn, uuid.String(), "__TTL", "0")
+		err = s.addValueToSession(conn, uuid.String(), "__TTL", "0")
 		if err != nil {
 			return "", err
 		}
@@ -134,12 +134,12 @@ func (s *RedisStore) CreateSession(ttl int64) (string, error) {
 
 // AddValueToSession is add a value with key to session store
 func (s *RedisStore) AddValueToSession(id, key, value string) error {
-	conn := s.ConnectionPool.Get()
+	conn := s.connectionPool.Get()
 	defer conn.Close() // TODO: ???
 
-	return addValueToSession(conn, id, key, value)
+	return s.addValueToSession(conn, id, key, value)
 }
-func addValueToSession(conn redis.Conn, id, key, value string) error {
+func (s *RedisStore) addValueToSession(conn redis.Conn, id, key, value string) error {
 	if key != "__TTL" {
 		res, err := redis.StringMap(conn.Do("HGETALL", id))
 		if err != nil {
@@ -154,11 +154,11 @@ func addValueToSession(conn redis.Conn, id, key, value string) error {
 
 // AddValuesToSession is add multiple values into the session store
 func (s *RedisStore) AddValuesToSession(id string, values session.SessionValues) error {
-	conn := s.ConnectionPool.Get()
+	conn := s.connectionPool.Get()
 	defer conn.Close() // TODO: ???
 
 	for key, val := range values {
-		err := addValueToSession(conn, id, key, val)
+		err := s.addValueToSession(conn, id, key, val)
 		if err != nil {
 			return err
 		}
@@ -173,12 +173,12 @@ func (s *RedisStore) AddValuesToSession(id string, values session.SessionValues)
 
 // GetSessionValues return the session values by id
 func (s *RedisStore) GetSessionValues(id string) (session.SessionValues, error) {
-	conn := s.ConnectionPool.Get()
+	conn := s.connectionPool.Get()
 	defer conn.Close() // TODO: ???
-	return getValuesBySessionID(conn, id)
+	return s.getValuesBySessionID(conn, id)
 }
 
-func getValuesBySessionID(conn redis.Conn, id string) (session.SessionValues, error) {
+func (s *RedisStore) getValuesBySessionID(conn redis.Conn, id string) (session.SessionValues, error) {
 	res, err := conn.Do("HGETALL", id)
 	values, err := redis.StringMap(res, err)
 	if err != nil {
@@ -189,7 +189,7 @@ func getValuesBySessionID(conn redis.Conn, id string) (session.SessionValues, er
 
 // InvalidateSession is invalidate the session by id
 func (s *RedisStore) InvalidateSession(id string) error {
-	conn := s.ConnectionPool.Get()
+	conn := s.connectionPool.Get()
 	defer conn.Close() // TODO: ???
 
 	err := conn.Send("DEL", id)
@@ -209,10 +209,10 @@ func (s *RedisStore) InvalidateSession(id string) error {
 
 // InvalidateSessionValue is invalidate one specific value in the session, by session id and key
 func (s *RedisStore) InvalidateSessionValue(id, key string) error {
-	conn := s.ConnectionPool.Get()
+	conn := s.connectionPool.Get()
 	defer conn.Close()
 
-	err := invalidateSessionValue(conn, id, key)
+	err := s.invalidateSessionValue(conn, id, key)
 	if err != nil {
 		log.Logger.Errorf("Something went wrong: %s", err)
 		return err
@@ -229,11 +229,11 @@ func (s *RedisStore) InvalidateSessionValue(id, key string) error {
 
 // InvalidateSessionValues is invalidate multiple specific value in the session, by session id and keys
 func (s *RedisStore) InvalidateSessionValues(id string, keys []string) error {
-	conn := s.ConnectionPool.Get()
+	conn := s.connectionPool.Get()
 	defer conn.Close()
 
 	for _, key := range keys {
-		err := invalidateSessionValue(conn, id, key)
+		err := s.invalidateSessionValue(conn, id, key)
 		if err != nil {
 			log.Logger.Errorf("Something went wrong: %s", err)
 			return err
@@ -249,6 +249,6 @@ func (s *RedisStore) InvalidateSessionValues(id string, keys []string) error {
 	return nil
 }
 
-func invalidateSessionValue(conn redis.Conn, id string, key string) error {
+func (s *RedisStore) invalidateSessionValue(conn redis.Conn, id string, key string) error {
 	return conn.Send("HDEL ", id, key)
 }
