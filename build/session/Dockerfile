@@ -7,7 +7,7 @@ WORKDIR /go/app
 COPY . .
 
 RUN go get -d -v ./...
-RUN go build -o build/session/sessionServer cmd/session.go
+RUN go build -o build/session/sessionServer cmd/session/session.go
 
 # final stage
 FROM alpine

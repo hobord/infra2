@@ -7,7 +7,7 @@ WORKDIR /go/app
 COPY . .
 
 RUN go get -d -v ./...
-RUN go build -o build/infra/infra2Server cmd/infra2.go
+RUN go build -o build/infra/infra2Server cmd/infra/infra2.go
 
 # final stage
 FROM alpine
