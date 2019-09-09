@@ -35,13 +35,13 @@ func getMongoClient() (*mongo.Client, error) {
 
 	client, err := mongo.NewClient(clientOptions)
 	if err != nil {
-		log.Logger.Fatal(err)
+		log.Logger.Error(err)
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	err = client.Connect(ctx)
 	if err != nil {
-		log.Logger.Fatal(err)
+		log.Logger.Error(err)
 	}
 
 	return client, nil
@@ -52,7 +52,7 @@ func CreateMongoDBSessionStore(client *mongo.Client) *MongoStore {
 	if client == nil {
 		client, err = getMongoClient()
 		if err != nil {
-			log.Logger.Fatal("Cant get Mongodb Client")
+			log.Logger.Error("Cant get Mongodb Client")
 		}
 	}
 	return &MongoStore{
@@ -85,17 +85,18 @@ func (s *MongoStore) CreateSession(ttl int64) (string, error) {
 
 	_, err = collection.InsertOne(context.TODO(), sess)
 	if err != nil {
-		log.Logger.Fatal(err)
+		log.Logger.Error(err)
 	}
 
 	return uuid.String(), nil
 }
 
 func (s *MongoStore) AddValueToSession(id, key, value string) error {
-	return s.addValueToSession(id, key, value)
+	_, err := s.addValueToSession(id, key, value)
+	return err
 }
 
-func (s *MongoStore) addValueToSession(sessionID, key, value string) error {
+func (s *MongoStore) addValueToSession(sessionID, key, value string) (*mongo.UpdateResult, error) {
 	var err error
 	ctx := context.TODO()
 	collection := s.client.Database("sessions").Collection("sessions")
@@ -105,50 +106,66 @@ func (s *MongoStore) addValueToSession(sessionID, key, value string) error {
 	update := bson.M{"$set": bson.M{"values": bson.D{{key, value}}}}
 
 	// update document
-	_, err = collection.UpdateOne(ctx, filter, update)
+	result, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		log.Logger.Fatal(err)
+		log.Logger.Error(err)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *MongoStore) AddValuesToSession(id string, values sessionValues) error {
-	return s.addValuesToSession(id, values)
+	_, err := s.addValuesToSession(id, values)
+	return err
 }
 
-func (s *MongoStore) addValuesToSession(sessionID, values sessionValues) error {
+func (s *MongoStore) addValuesToSession(sessionID string, values sessionValues) (*mongo.UpdateResult, error) {
 	var err error
 	ctx := context.TODO()
 	collection := s.client.Database("sessions").Collection("sessions")
 
 	// set filters and updates
 	filter := bson.M{"id": sessionID}
+	v := bson.D{}
+	for key, value := range values {
+		// update
+		v = append(v, bson.E{key, value})
+	}
 	update := bson.M{
 		"$set": bson.M{
-			"values": bson.D{
-				// {key, value},
-			},
+			"values": v,
 		},
 	}
-
-	for key, value := range values {
-		update."$set"."values" = append(update["$set"].values, bson.E{key, value})
-	}
-
 	// update document
-	_, err = collection.UpdateOne(ctx, filter, update)
+	updateResult, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		log.Logger.Fatal(err)
+		log.Logger.Error(err)
 	}
 
-	return err
+	return updateResult, err
+}
+
+func (s *MongoStore) GetSessionValues(id string) (sessionValues, error) {
+
+	return nil, nil
+}
+
+func (s *MongoStore) getSessionValues(id string) (sessionValues, error) {
+	var err error
+	ctx := context.TODO()
+	collection := s.client.Database("sessions").Collection("sessions")
+
+	// set filters and updates
+	var sess session
+	filter := bson.M{"id": id}
+	if err = collection.FindOne(ctx, filter).Decode(&sess); err != nil {
+		log.Logger.Error(err)
+		return nil, err
+	}
+	return sess.Values, nil
 }
 
 /*
-
-func AddValuesToSession(id string, values session.SessionValues) error {}
-func GetSessionValues(id string) (session.SessionValues, error)        {}
 func InvalidateSession(id string) error                                {}
 func InvalidateSessionValue(id, key string) error                      {}
 func InvalidateSessionValues(id string, keys []string) error           {}
