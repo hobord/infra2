@@ -11,15 +11,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	log "github.com/hobord/infra2/log"
+	session "github.com/hobord/infra2/session"
 )
 
-type sessionValues map[string]string
-
-type session struct {
+type sessionEntity struct {
 	ID     string
 	TTL    int64
 	Expire int64
-	Values sessionValues
+	Values session.SessionValues
 }
 
 type MongoStore struct {
@@ -76,11 +75,11 @@ func (s *MongoStore) CreateSession(ttl int64) (string, error) {
 		expire = 0
 	}
 
-	sess := &session{
+	sess := &sessionEntity{
 		ID:     uuid.String(),
 		TTL:    ttl,
 		Expire: expire,
-		Values: make(sessionValues),
+		Values: make(session.SessionValues),
 	}
 
 	_, err = collection.InsertOne(context.TODO(), sess)
@@ -114,12 +113,12 @@ func (s *MongoStore) addValueToSession(sessionID, key, value string) error {
 	return err
 }
 
-func (s *MongoStore) AddValuesToSession(id string, values sessionValues) error {
+func (s *MongoStore) AddValuesToSession(id string, values session.SessionValues) error {
 	err := s.addValuesToSession(id, values)
 	return err
 }
 
-func (s *MongoStore) addValuesToSession(sessionID string, values sessionValues) error {
+func (s *MongoStore) addValuesToSession(sessionID string, values session.SessionValues) error {
 	var err error
 	for key, value := range values {
 		s.addValueToSession(sessionID, key, value)
@@ -128,17 +127,17 @@ func (s *MongoStore) addValuesToSession(sessionID string, values sessionValues) 
 	return err
 }
 
-func (s *MongoStore) GetSessionValues(id string) (sessionValues, error) {
+func (s *MongoStore) GetSessionValues(id string) (session.SessionValues, error) {
 	return s.getSessionValues(id)
 }
 
-func (s *MongoStore) getSessionValues(id string) (sessionValues, error) {
+func (s *MongoStore) getSessionValues(id string) (session.SessionValues, error) {
 	var err error
 	ctx := context.TODO()
 	collection := s.client.Database("sessions").Collection("sessions")
 
 	// set filters and updates
-	var sess session
+	var sess sessionEntity
 	filter := bson.M{"id": id}
 	if err = collection.FindOne(ctx, filter).Decode(&sess); err != nil {
 		log.Logger.Error(err)
@@ -176,8 +175,13 @@ func (s *MongoStore) InvalidateSessionValue(id, key string) error {
 	return err
 }
 
-/*
-func InvalidateSessionValue(id, key string) error                      {}
-func InvalidateSessionValues(id string, keys []string) error           {}
-*/
-// update.$set.values
+func (s *MongoStore) InvalidateSessionValues(id string, keys []string) error {
+	for _, key := range keys {
+		err := s.InvalidateSessionValue(id, key)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

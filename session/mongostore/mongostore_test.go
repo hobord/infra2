@@ -80,8 +80,8 @@ func TestAddValuesToSession(t *testing.T) {
 
 	err = s.InvalidateSessionValue(sessionID, "key")
 
-	_, err = s.addValueToSession(sessionID, "newKey", "val")
+	err = s.addValueToSession(sessionID, "newKey", "val")
 
-	_, err = s.addValueToSession(sessionID, "key2", "newval")
+	err = s.addValueToSession(sessionID, "key2", "newval")
 
 }

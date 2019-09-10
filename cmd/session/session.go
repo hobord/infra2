@@ -12,7 +12,7 @@ import (
 
 	api "github.com/hobord/infra2/api/grpc/session"
 	sessiongrpc "github.com/hobord/infra2/session/grpc"
-	redistore "github.com/hobord/infra2/session/redistore"
+	"github.com/hobord/infra2/session/mongostore"
 )
 
 func main() {
@@ -33,7 +33,9 @@ func main() {
 	// redisConnectionPool = redistore.NewRedisPool()
 	// store := redistore.CreateRedisStore(redisConnectionPool)
 	// otherwise  the constructor create automatically using the OS ENV
-	store := redistore.CreateRedisSessionStore(nil)
+
+	// store := redistore.CreateRedisSessionStore(nil)
+	store := mongostore.CreateMongoDBSessionStore(nil)
 
 	rpcServer, err := sessiongrpc.CreateGrpcServer(store)
 	if err != nil {
