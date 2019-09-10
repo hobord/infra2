@@ -36,6 +36,7 @@ func main() {
 
 	// store := redistore.CreateRedisSessionStore(nil)
 	store := mongostore.CreateMongoDBSessionStore(nil)
+	store.StartGbCollector(10)
 
 	rpcServer, err := sessiongrpc.CreateGrpcServer(store)
 	if err != nil {

@@ -199,13 +199,15 @@ func (s *MongoStore) InvalidateSessionValues(id string, keys []string) error {
 }
 
 func (s *MongoStore) StartGbCollector(intervall int) {
-	for {
-		go s.deleteInvalidSessions()
-		time.Sleep(time.Second * time.Duration(intervall*1000))
-	}
+	go func() {
+		for {
+			s.deleteInvalidSessions()
+			time.Sleep(time.Second * time.Duration(intervall*1000))
+		}
+	}()
 }
 
-func (s *MongoStore) deleteInvalidSessions() {
+func (s *MongoStore) deleteInvalidSessions() (*mongo.DeleteResult, error) {
 	ctx := context.TODO()
 	collection := s.client.Database("sessions").Collection("sessions")
 	expTime := time.Now().Local().Unix()
@@ -215,8 +217,10 @@ func (s *MongoStore) deleteInvalidSessions() {
 		bson.M{"expire": bson.M{"$lte": expTime}},
 	}}
 
-	_, err := collection.DeleteMany(ctx, filter)
+	deleteResult, err := collection.DeleteMany(ctx, filter)
 	if err != nil {
 		log.Logger.Error(err)
 	}
+	log.Logger.Info(deleteResult)
+	return deleteResult, err
 }

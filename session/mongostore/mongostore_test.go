@@ -90,5 +90,9 @@ func TestDeleteInvalidSessions(t *testing.T) {
 	os.Setenv("DB_URL", "mongodb://10.20.153.18:27017")
 	s := CreateMongoDBSessionStore(nil)
 
-	s.deleteInvalidSessions()
+	deleteResult, err := s.deleteInvalidSessions()
+	if err != nil {
+		t.Errorf("CreateSession error %v", err)
+	}
+	t.Log(deleteResult)
 }
