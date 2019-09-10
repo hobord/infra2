@@ -3,7 +3,6 @@ package mongostore
 import (
 	"context"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -59,15 +58,15 @@ func CreateMongoDBSessionStore(client *mongo.Client) *MongoStore {
 		client: client,
 	}
 
-	frenquencyEnv := os.Getenv("REDIS_MAXTIMEOUT")
-	if frenquencyEnv == "" {
-		frenquencyEnv = "240"
-	}
-	fr, err := strconv.Atoi(frenquencyEnv)
-	if err != nil {
-		log.Logger.Fatal(err)
-	}
-	store.startGbCollector(fr)
+	// frenquencyEnv := os.Getenv("REDIS_MAXTIMEOUT")
+	// if frenquencyEnv == "" {
+	// 	frenquencyEnv = "240"
+	// }
+	// fr, err := strconv.Atoi(frenquencyEnv)
+	// if err != nil {
+	// 	log.Logger.Fatal(err)
+	// }
+	// store.StartGbCollector(fr)
 
 	return store
 }
@@ -199,6 +198,25 @@ func (s *MongoStore) InvalidateSessionValues(id string, keys []string) error {
 	return nil
 }
 
-func (s *MongoStore) startGbCollector(intervall int) {
+func (s *MongoStore) StartGbCollector(intervall int) {
+	for {
+		go s.deleteInvalidSessions()
+		time.Sleep(time.Second * time.Duration(intervall*1000))
+	}
+}
 
+func (s *MongoStore) deleteInvalidSessions() {
+	ctx := context.TODO()
+	collection := s.client.Database("sessions").Collection("sessions")
+	expTime := time.Now().Local().Unix()
+
+	filter := bson.M{"$and": []interface{}{
+		bson.M{"expire": bson.M{"$ne": 0}},
+		bson.M{"expire": bson.M{"$lte": expTime}},
+	}}
+
+	_, err := collection.DeleteMany(ctx, filter)
+	if err != nil {
+		log.Logger.Error(err)
+	}
 }

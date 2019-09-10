@@ -63,7 +63,7 @@ func TestAddValuesToSession(t *testing.T) {
 		t.Errorf("AddValuesToSession error %v", err)
 	}
 
-	sessionID, err = s.CreateSession(0)
+	sessionID, err = s.CreateSession(2)
 	if err != nil {
 		t.Errorf("CreateSession error %v", err)
 	}
@@ -84,4 +84,11 @@ func TestAddValuesToSession(t *testing.T) {
 
 	err = s.addValueToSession(sessionID, "key2", "newval")
 
+}
+
+func TestDeleteInvalidSessions(t *testing.T) {
+	os.Setenv("DB_URL", "mongodb://10.20.153.18:27017")
+	s := CreateMongoDBSessionStore(nil)
+
+	s.deleteInvalidSessions()
 }
