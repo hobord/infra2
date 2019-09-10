@@ -3,6 +3,7 @@ package mongostore
 import (
 	"context"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -54,9 +55,21 @@ func CreateMongoDBSessionStore(client *mongo.Client) *MongoStore {
 			log.Logger.Error("Cant get Mongodb Client")
 		}
 	}
-	return &MongoStore{
+	store := &MongoStore{
 		client: client,
 	}
+
+	frenquencyEnv := os.Getenv("REDIS_MAXTIMEOUT")
+	if frenquencyEnv == "" {
+		frenquencyEnv = "240"
+	}
+	fr, err := strconv.Atoi(frenquencyEnv)
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
+	store.startGbCollector(fr)
+
+	return store
 }
 
 // CreateSession is create a new session with ttl, if ttl is 0 then the session is eternal
@@ -184,4 +197,8 @@ func (s *MongoStore) InvalidateSessionValues(id string, keys []string) error {
 	}
 
 	return nil
+}
+
+func (s *MongoStore) startGbCollector(intervall int) {
+
 }
